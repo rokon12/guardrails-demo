@@ -193,6 +193,23 @@ class ChatApp {
         
         let html = '<div class="mt-3">';
         
+        // Always show the main analysis fields
+        if (data.answer) {
+            html += `<div class="mb-2"><strong>Summary:</strong> ${this.escapeHtml(data.answer)}</div>`;
+        }
+        
+        if (data.category) {
+            const categoryColor = this.getCategoryColor(data.category);
+            html += `<div class="mb-2"><strong>Category:</strong> <span class="analysis-badge ${categoryColor}">${data.category}</span></div>`;
+        }
+        
+        if (data.confidence !== undefined) {
+            const confidencePercent = Math.round(data.confidence * 100);
+            const confidenceClass = data.confidence >= 0.8 ? 'badge-low' : data.confidence >= 0.5 ? 'badge-medium' : 'badge-high';
+            html += `<div class="mb-2"><strong>Confidence:</strong> <span class="analysis-badge ${confidenceClass}">${confidencePercent}%</span></div>`;
+        }
+        
+        // Optional fields
         if (data.intent) {
             html += `<div class="mb-2"><strong>Intent:</strong> ${this.escapeHtml(data.intent)}</div>`;
         }
@@ -201,10 +218,6 @@ class ChatApp {
             const priorityClass = data.priority.toLowerCase() === 'high' ? 'badge-high' : 
                                 data.priority.toLowerCase() === 'medium' ? 'badge-medium' : 'badge-low';
             html += `<div class="mb-2"><strong>Priority:</strong> <span class="analysis-badge ${priorityClass}">${data.priority}</span></div>`;
-        }
-        
-        if (data.category) {
-            html += `<div class="mb-2"><strong>Category:</strong> ${this.escapeHtml(data.category)}</div>`;
         }
         
         if (data.sentiment) {
@@ -221,6 +234,17 @@ class ChatApp {
         
         analysisContent.innerHTML = html;
         analysisPanel.style.display = 'block';
+    }
+
+    getCategoryColor(category) {
+        switch(category.toUpperCase()) {
+            case 'ACCOUNT': return 'badge-medium';
+            case 'BILLING': return 'badge-high';
+            case 'TECHNICAL': return 'badge-high';
+            case 'PRODUCT': return 'badge-low';
+            case 'GENERAL': return 'badge-low';
+            default: return 'badge-medium';
+        }
     }
 
     showError(message) {

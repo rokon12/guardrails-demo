@@ -41,7 +41,7 @@ public class AiServiceConfiguration {
         .chatModel(chatModel)
         .chatMemory(MessageWindowChatMemory.withMaxMessages(10))
         .inputGuardrails(contentSafetyInputGuardrail, inputSanitizerGuardrail, conversationContextGuardrail, injectionGuard)
-        .outputGuardrails(toneGuard, hallucinationDetectionGuardrail)
+        .outputGuardrails(toneGuard, hallucinationDetectionGuardrail, customerSupportJsonGuardrail)
         .outputGuardrailsConfig(outputConfig)
         .build();
   }
