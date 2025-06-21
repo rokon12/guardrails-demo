@@ -40,7 +40,7 @@ public class AiServiceConfiguration {
     return AiServices.builder(CustomerSupportAssistant.class)
         .chatModel(chatModel)
         .chatMemory(MessageWindowChatMemory.withMaxMessages(10))
-        .inputGuardrails(contentSafetyInputGuardrail, inputSanitizerGuardrail, contentSafetyInputGuardrail, conversationContextGuardrail, injectionGuard)
+        .inputGuardrails(contentSafetyInputGuardrail, inputSanitizerGuardrail, conversationContextGuardrail, injectionGuard)
         .outputGuardrails(toneGuard, hallucinationDetectionGuardrail)
         .outputGuardrailsConfig(outputConfig)
         .build();
