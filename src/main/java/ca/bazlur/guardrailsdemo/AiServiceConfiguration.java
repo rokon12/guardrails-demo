@@ -17,8 +17,8 @@ public class AiServiceConfiguration {
     return OpenAiChatModel.builder()
         .apiKey(System.getenv("OPENAI_API_KEY"))
         .modelName("gpt-4o")
-        .logRequests(true)
-        .logResponses(true)
+        .logRequests(false)
+        .logResponses(false)
         .build();
   }
 
