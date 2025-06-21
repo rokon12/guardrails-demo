@@ -329,6 +329,95 @@
             padding-top: 20px;
         }
 
+        /* Markdown styling within messages */
+        .message-content h1, .message-content h2, .message-content h3, 
+        .message-content h4, .message-content h5, .message-content h6 {
+            margin: 0.5em 0;
+            font-weight: 600;
+        }
+        
+        .message-content h1 { font-size: 1.3em; }
+        .message-content h2 { font-size: 1.2em; }
+        .message-content h3 { font-size: 1.1em; }
+        .message-content h4, .message-content h5, .message-content h6 { font-size: 1em; }
+        
+        .message-content p {
+            margin: 0.5em 0;
+            line-height: 1.5;
+        }
+        
+        .message-content ul, .message-content ol {
+            margin: 0.5em 0;
+            padding-left: 1.5em;
+        }
+        
+        .message-content li {
+            margin: 0.25em 0;
+        }
+        
+        .message-content code {
+            background: rgba(0, 0, 0, 0.1);
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 0.9em;
+        }
+        
+        .message-content pre {
+            background: rgba(0, 0, 0, 0.1);
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+            margin: 0.5em 0;
+        }
+        
+        .message-content pre code {
+            background: none;
+            padding: 0;
+        }
+        
+        .message-content blockquote {
+            border-left: 3px solid #667eea;
+            margin: 0.5em 0;
+            padding-left: 1em;
+            font-style: italic;
+            opacity: 0.9;
+        }
+        
+        .message-content strong, .message-content b {
+            font-weight: 600;
+        }
+        
+        .message-content em, .message-content i {
+            font-style: italic;
+        }
+        
+        .message-content a {
+            color: #667eea;
+            text-decoration: none;
+        }
+        
+        .message-content a:hover {
+            text-decoration: underline;
+        }
+        
+        .message-content table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 0.5em 0;
+        }
+        
+        .message-content th, .message-content td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        
+        .message-content th {
+            background-color: #f2f2f2;
+            font-weight: 600;
+        }
+
         @media (max-width: 768px) {
             .main-container {
                 margin: 10px;
@@ -479,6 +568,7 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked@9.1.6/marked.min.js"></script>
     <script src="/js/chat.js"></script>
 </body>
 </html>

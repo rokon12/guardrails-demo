@@ -128,9 +128,13 @@ class ChatApp {
         const messageDiv = document.createElement('div');
         messageDiv.className = 'message bot';
         
-        const messageContent = isError ? 
-            `<i class="fas fa-exclamation-triangle"></i> ${this.escapeHtml(message)}` :
-            this.escapeHtml(message);
+        let messageContent;
+        if (isError) {
+            messageContent = `<i class="fas fa-exclamation-triangle"></i> ${this.escapeHtml(message)}`;
+        } else {
+            // Parse markdown and sanitize the result
+            messageContent = this.parseMarkdown(message);
+        }
 
         messageDiv.innerHTML = `
             <div class="message-avatar">
@@ -196,6 +200,33 @@ class ChatApp {
                 }
             }, 300);
         }, 3000);
+    }
+
+    parseMarkdown(text) {
+        // Configure marked for safe parsing
+        if (typeof marked !== 'undefined') {
+            marked.setOptions({
+                breaks: true,
+                gfm: true,
+                sanitize: false, // We'll sanitize manually
+                smartLists: true,
+                smartypants: false
+            });
+            
+            // Parse markdown to HTML
+            let html = marked.parse(text);
+            
+            // Basic sanitization - remove potentially dangerous elements
+            html = html.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
+            html = html.replace(/<iframe\b[^<]*(?:(?!<\/iframe>)<[^<]*)*<\/iframe>/gi, '');
+            html = html.replace(/javascript:/gi, '');
+            html = html.replace(/on\w+\s*=/gi, '');
+            
+            return html;
+        } else {
+            // Fallback if marked is not available
+            return this.escapeHtml(text).replace(/\n/g, '<br>');
+        }
     }
 
     escapeHtml(unsafe) {
