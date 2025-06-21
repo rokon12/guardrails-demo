@@ -44,10 +44,11 @@ public class AiServiceConfiguration {
             HallucinationDetectionGuardrail hallucinationDetectionGuardrail,
             InputSanitizerGuardrail inputSanitizerGuardrail,
             ContextAwareInputGuardrail contextAwareInputGuardrail,
-            RateLimitingGuardrail rateLimitingGuardrail) {
+            RateLimitingGuardrail rateLimitingGuardrail,
+            @Value("${app.guardrails.output.max-retries}") int maxRetries) {
 
         OutputGuardrailsConfig outputConfig = OutputGuardrailsConfig.builder()
-                .maxRetries(5)
+                .maxRetries(maxRetries)
                 .build();
 
         return AiServices.builder(CustomerSupportAssistant.class)

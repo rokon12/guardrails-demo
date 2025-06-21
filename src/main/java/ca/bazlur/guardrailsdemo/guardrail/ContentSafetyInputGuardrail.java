@@ -3,6 +3,7 @@ package ca.bazlur.guardrailsdemo.guardrail;
 import dev.langchain4j.data.message.UserMessage;
 import dev.langchain4j.guardrail.InputGuardrail;
 import dev.langchain4j.guardrail.InputGuardrailResult;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -27,13 +28,19 @@ public class ContentSafetyInputGuardrail implements InputGuardrail {
       Pattern.compile("[\\w\\s]*(?:how\\s+to|teach\\s+me|show\\s+me)\\s+(?:hack|exploit|bypass)", Pattern.CASE_INSENSITIVE)
   );
 
+  private final int maxLength;
+
+  public ContentSafetyInputGuardrail(@Value("${app.guardrails.input.max-length}") int maxLength) {
+    this.maxLength = maxLength;
+  }
+
   @Override
   public InputGuardrailResult validate(UserMessage userMessage) {
     String originalText = userMessage.singleText();
     String text = originalText.toLowerCase();
     
-    if (originalText.length() > 1000) {
-      return failure("Your message is too long. Please keep it under 1000 characters.");
+    if (originalText.length() > maxLength) {
+      return failure("Your message is too long. Please keep it under " + maxLength + " characters.");
     }
     if (text.isBlank()) {
       return failure("Your message cannot be empty.");

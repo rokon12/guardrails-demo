@@ -22,11 +22,11 @@ class SimpleGuardrailTest {
 
     @BeforeEach
     void setUp() {
-        contentSafetyGuardrail = new ContentSafetyInputGuardrail();
+        contentSafetyGuardrail = new ContentSafetyInputGuardrail(1000); // Using config value
         promptInjectionGuardrail = new PromptInjectionGuardrail();
         inputSanitizerGuardrail = new InputSanitizerGuardrail();
         professionalToneGuardrail = new ProfessionalToneOutputGuardrail();
-        rateLimitingGuardrail = new RateLimitingGuardrail();
+        rateLimitingGuardrail = new RateLimitingGuardrail(10, true); // Using config values
         contextAwareGuardrail = new ContextAwareInputGuardrail();
     }
 

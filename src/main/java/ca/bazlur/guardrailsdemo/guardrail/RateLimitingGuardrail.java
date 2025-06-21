@@ -4,6 +4,7 @@ import dev.langchain4j.data.message.UserMessage;
 import dev.langchain4j.guardrail.InputGuardrail;
 import dev.langchain4j.guardrail.InputGuardrailResult;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.time.Duration;
@@ -15,15 +16,28 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 @Slf4j
 public class RateLimitingGuardrail implements InputGuardrail {
     
-    private static final int MAX_REQUESTS_PER_MINUTE = 30;
+    private final int maxRequestsPerMinute;
+    private final boolean rateLimitEnabled;
     private static final int MAX_REQUESTS_PER_HOUR = 200;
     private static final Duration CLEANUP_INTERVAL = Duration.ofMinutes(5);
     
     private final ConcurrentHashMap<String, UserRateLimit> userLimits = new ConcurrentHashMap<>();
     private volatile Instant lastCleanup = Instant.now();
+
+    public RateLimitingGuardrail(
+            @Value("${app.guardrails.input.rate-limit.max-requests-per-minute}") int maxRequestsPerMinute,
+            @Value("${app.guardrails.input.rate-limit.enabled}") boolean rateLimitEnabled) {
+        this.maxRequestsPerMinute = maxRequestsPerMinute;
+        this.rateLimitEnabled = rateLimitEnabled;
+    }
     
     @Override
     public InputGuardrailResult validate(UserMessage userMessage) {
+        // Skip rate limiting if disabled
+        if (!rateLimitEnabled) {
+            return success();
+        }
+        
         String userId = extractUserId(userMessage);
         Instant now = Instant.now();
         
@@ -39,11 +53,11 @@ public class RateLimitingGuardrail implements InputGuardrail {
         userLimit.cleanOldRequests(now);
         
         // Check rate limits
-        if (userLimit.getRequestsInLastMinute(now) >= MAX_REQUESTS_PER_MINUTE) {
+        if (userLimit.getRequestsInLastMinute(now) >= maxRequestsPerMinute) {
             log.warn("Rate limit exceeded for user {}: {} requests in last minute", userId, userLimit.getRequestsInLastMinute(now));
             return failure(String.format(
                 "Rate limit exceeded. You can make up to %d requests per minute. Please wait before sending another message.",
-                MAX_REQUESTS_PER_MINUTE
+                maxRequestsPerMinute
             ));
         }
         
