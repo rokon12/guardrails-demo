@@ -385,10 +385,7 @@
                             </button>
                         </div>
                         <div class="mt-3 text-center">
-                            <button class="btn btn-analyze" id="analyzeBtn">
-                                <i class="fas fa-search"></i> Analyze Query
-                            </button>
-                            <small class="text-muted ms-3">Max 1000 characters</small>
+                            <small class="text-muted">Max 1000 characters</small>
                         </div>
                         <div id="errorContainer"></div>
                     </div>
@@ -400,15 +397,6 @@
                         <div class="text-muted">Messages Sent</div>
                     </div>
                     
-                    <div class="stats-card">
-                        <div class="stats-number" id="guardrailCount">0</div>
-                        <div class="text-muted">Guardrail Checks</div>
-                    </div>
-                    
-                    <div class="analysis-panel" id="analysisPanel">
-                        <h5><i class="fas fa-chart-line"></i> Query Analysis</h5>
-                        <div id="analysisContent"></div>
-                    </div>
                     
                     <div class="stats-card mt-3">
                         <h6><i class="fas fa-shield-alt"></i> Active Guardrails</h6>
@@ -416,6 +404,9 @@
                             <span class="analysis-badge badge-low" data-bs-toggle="tooltip" title="Blocks prohibited words and validates message length">Content Safety</span>
                             <span class="analysis-badge badge-low" data-bs-toggle="tooltip" title="Detects and prevents prompt injection attempts">Prompt Injection</span>
                             <span class="analysis-badge badge-low" data-bs-toggle="tooltip" title="Sanitizes user inputs for security">Input Sanitizer</span>
+                            <span class="analysis-badge badge-low" data-bs-toggle="tooltip" title="Maintains conversation context and prevents repetitive queries">Context Aware</span>
+                            <span class="analysis-badge badge-low" data-bs-toggle="tooltip" title="Enforces rate limits to prevent abuse">Rate Limiting</span>
+                            <span class="analysis-badge badge-low" data-bs-toggle="tooltip" title="Maintains conversation context">Conversation Context</span>
                             <span class="analysis-badge badge-low" data-bs-toggle="tooltip" title="Ensures professional tone in responses">Professional Tone</span>
                             <span class="analysis-badge badge-low" data-bs-toggle="tooltip" title="Prevents AI hallucinations in responses">Hallucination Detection</span>
                         </div>

@@ -1,7 +1,6 @@
 package ca.bazlur.guardrailsdemo.guardrail;
 
 import dev.langchain4j.data.message.UserMessage;
-import dev.langchain4j.guardrail.InputGuardrail;
 import dev.langchain4j.guardrail.InputGuardrailResult;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

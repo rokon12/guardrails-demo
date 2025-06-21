@@ -12,11 +12,9 @@ class ChatApp {
 
     bindEvents() {
         const sendBtn = document.getElementById('sendBtn');
-        const analyzeBtn = document.getElementById('analyzeBtn');
         const messageInput = document.getElementById('messageInput');
 
         sendBtn.addEventListener('click', () => this.sendMessage());
-        analyzeBtn.addEventListener('click', () => this.analyzeQuery());
         
         messageInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter' && !e.shiftKey) {
@@ -81,7 +79,6 @@ class ChatApp {
         messageInput.value = '';
         this.showTyping(true);
         this.messageCount++;
-        this.guardrailCount++;
         this.updateStats();
 
         try {
@@ -109,38 +106,6 @@ class ChatApp {
         }
     }
 
-    async analyzeQuery() {
-        const messageInput = document.getElementById('messageInput');
-        const message = messageInput.value.trim();
-
-        if (!message) {
-            this.showError('Please enter a message to analyze');
-            return;
-        }
-
-        this.clearError();
-        this.guardrailCount++;
-        this.updateStats();
-
-        try {
-            const response = await fetch('/api/support/analyze', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ message: message })
-            });
-
-            if (response.ok) {
-                const data = await response.json();
-                this.showAnalysis(data);
-            } else {
-                this.showError('Failed to analyze query. Please try again.');
-            }
-        } catch (error) {
-            this.showError('Connection error during analysis. Please try again.');
-        }
-    }
 
     addUserMessage(message) {
         const chatContainer = document.getElementById('chatContainer');
@@ -187,65 +152,6 @@ class ChatApp {
         }
     }
 
-    showAnalysis(data) {
-        const analysisPanel = document.getElementById('analysisPanel');
-        const analysisContent = document.getElementById('analysisContent');
-        
-        let html = '<div class="mt-3">';
-        
-        // Always show the main analysis fields
-        if (data.answer) {
-            html += `<div class="mb-2"><strong>Summary:</strong> ${this.escapeHtml(data.answer)}</div>`;
-        }
-        
-        if (data.category) {
-            const categoryColor = this.getCategoryColor(data.category);
-            html += `<div class="mb-2"><strong>Category:</strong> <span class="analysis-badge ${categoryColor}">${data.category}</span></div>`;
-        }
-        
-        if (data.confidence !== undefined) {
-            const confidencePercent = Math.round(data.confidence * 100);
-            const confidenceClass = data.confidence >= 0.8 ? 'badge-low' : data.confidence >= 0.5 ? 'badge-medium' : 'badge-high';
-            html += `<div class="mb-2"><strong>Confidence:</strong> <span class="analysis-badge ${confidenceClass}">${confidencePercent}%</span></div>`;
-        }
-        
-        // Optional fields
-        if (data.intent) {
-            html += `<div class="mb-2"><strong>Intent:</strong> ${this.escapeHtml(data.intent)}</div>`;
-        }
-        
-        if (data.priority) {
-            const priorityClass = data.priority.toLowerCase() === 'high' ? 'badge-high' : 
-                                data.priority.toLowerCase() === 'medium' ? 'badge-medium' : 'badge-low';
-            html += `<div class="mb-2"><strong>Priority:</strong> <span class="analysis-badge ${priorityClass}">${data.priority}</span></div>`;
-        }
-        
-        if (data.sentiment) {
-            const sentimentClass = data.sentiment.toLowerCase() === 'negative' ? 'badge-high' : 
-                                  data.sentiment.toLowerCase() === 'neutral' ? 'badge-medium' : 'badge-low';
-            html += `<div class="mb-2"><strong>Sentiment:</strong> <span class="analysis-badge ${sentimentClass}">${data.sentiment}</span></div>`;
-        }
-        
-        if (data.suggestedResponse) {
-            html += `<div class="mt-3"><strong>Suggested Response:</strong><br><small class="text-muted">${this.escapeHtml(data.suggestedResponse)}</small></div>`;
-        }
-        
-        html += '</div>';
-        
-        analysisContent.innerHTML = html;
-        analysisPanel.style.display = 'block';
-    }
-
-    getCategoryColor(category) {
-        switch(category.toUpperCase()) {
-            case 'ACCOUNT': return 'badge-medium';
-            case 'BILLING': return 'badge-high';
-            case 'TECHNICAL': return 'badge-high';
-            case 'PRODUCT': return 'badge-low';
-            case 'GENERAL': return 'badge-low';
-            default: return 'badge-medium';
-        }
-    }
 
     showError(message) {
         const errorContainer = document.getElementById('errorContainer');
@@ -264,7 +170,6 @@ class ChatApp {
 
     updateStats() {
         document.getElementById('messageCount').textContent = this.messageCount;
-        document.getElementById('guardrailCount').textContent = this.guardrailCount;
     }
 
     scrollToBottom() {

@@ -12,7 +12,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -79,43 +78,5 @@ class CustomerSupportControllerTest {
         assertThat(response.getBody().response()).isNull();
         assertThat(response.getBody().error())
             .contains("Unable to generate appropriate response");
-    }
-
-    @Test
-    void shouldHandleSuccessfulAnalysis() {
-        // Given
-        String query = "I need help with billing";
-        CustomerSupportJsonGuardrail.CustomerSupportResponse expectedAnalysis = new CustomerSupportJsonGuardrail.CustomerSupportResponse();
-        expectedAnalysis.setAnswer("Customer has billing inquiry");
-        expectedAnalysis.setCategory("BILLING");
-        expectedAnalysis.setConfidence(0.95);
-        when(assistant.analyzeQuery(query)).thenReturn(expectedAnalysis);
-
-        // When
-        ResponseEntity<CustomerSupportJsonGuardrail.CustomerSupportResponse> response = 
-            controller.analyze(new ChatRequest(query));
-
-        // Then
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(response.getBody()).isNotNull();
-        assertThat(response.getBody().getAnswer()).isEqualTo("Customer has billing inquiry");
-        assertThat(response.getBody().getCategory()).isEqualTo("BILLING");
-        assertThat(response.getBody().getConfidence()).isEqualTo(0.95);
-    }
-
-    @Test
-    void shouldHandleAnalysisFailure() {
-        // Given
-        String invalidQuery = "invalid query";
-        when(assistant.analyzeQuery(invalidQuery))
-            .thenThrow(new RuntimeException("Analysis failed"));
-
-        // When
-        ResponseEntity<CustomerSupportJsonGuardrail.CustomerSupportResponse> response = 
-            controller.analyze(new ChatRequest(invalidQuery));
-
-        // Then
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
-        assertThat(response.getBody()).isNull();
     }
 }
