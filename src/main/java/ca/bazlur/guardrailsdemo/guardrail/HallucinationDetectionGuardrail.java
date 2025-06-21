@@ -25,7 +25,13 @@ public class HallucinationDetectionGuardrail implements OutputGuardrail {
     public OutputGuardrailResult validate(OutputGuardrailRequest request) {
         var response = request.responseFromLLM();
         String responseText = response.aiMessage().text();
-        AugmentationResult augmentationResult = request.requestParams().augmentationResult();
+        
+        AugmentationResult augmentationResult = null;
+        try {
+            augmentationResult = request.requestParams().augmentationResult();
+        } catch (Exception e) {
+            log.debug("No augmentation result available, treating as context-free validation");
+        }
 
         // Check for overly confident claims without context
         if (augmentationResult == null || augmentationResult.contents().isEmpty()) {

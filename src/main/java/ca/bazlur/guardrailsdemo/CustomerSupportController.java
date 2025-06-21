@@ -1,6 +1,5 @@
 package ca.bazlur.guardrailsdemo;
 
-import ca.bazlur.guardrailsdemo.guardrail.CustomerSupportJsonGuardrail;
 import dev.langchain4j.guardrail.InputGuardrailException;
 import dev.langchain4j.guardrail.OutputGuardrailException;
 import lombok.extern.slf4j.Slf4j;
@@ -34,15 +33,6 @@ public class CustomerSupportController {
     }
   }
 
-  @PostMapping("/analyze")
-  public ResponseEntity<CustomerSupportJsonGuardrail.CustomerSupportResponse> analyze(@RequestBody ChatRequest request) {
-    try {
-      CustomerSupportJsonGuardrail.CustomerSupportResponse analysis = assistant.analyzeQuery(request.message());
-      return ResponseEntity.ok(analysis);
-    } catch (Exception e) {
-      return ResponseEntity.badRequest().build();
-    }
-  }
 }
 
 record ChatRequest(String message) {
