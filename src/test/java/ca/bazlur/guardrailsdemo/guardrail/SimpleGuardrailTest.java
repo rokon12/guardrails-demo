@@ -2,13 +2,14 @@ package ca.bazlur.guardrailsdemo.guardrail;
 
 import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.data.message.UserMessage;
+import dev.langchain4j.guardrail.GuardrailResult;
 import dev.langchain4j.guardrail.InputGuardrailResult;
 import dev.langchain4j.guardrail.OutputGuardrailResult;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static dev.langchain4j.test.guardrail.GuardrailAssertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatNoException;
 
 class SimpleGuardrailTest {
@@ -40,10 +41,9 @@ class SimpleGuardrailTest {
         InputGuardrailResult result = contentSafetyGuardrail.validate(cleanMessage);
 
         // Then
-        if (!result.isSuccess()) {
-            System.out.println("Clean message failed: " + result.failures().getFirst().message());
-        }
-        assertThat(result.isSuccess()).isTrue();
+        assertThat(result)
+                .isSuccessful()
+                .hasResult(InputGuardrailResult.Result.SUCCESS);
     }
 
     @Test
@@ -56,8 +56,10 @@ class SimpleGuardrailTest {
         InputGuardrailResult result = contentSafetyGuardrail.validate(maliciousMessage);
 
         // Then
-        assertThat(result.isSuccess()).isFalse();
-        assertThat(result.failures().getFirst().message()).contains("prohibited content");
+        assertThat(result)
+                .hasFailures()
+                .hasResult(InputGuardrailResult.Result.FAILURE)
+                .hasSingleFailureWithMessage("Your message contains prohibited content related to security threats.");
     }
 
     @Test
@@ -71,8 +73,10 @@ class SimpleGuardrailTest {
         InputGuardrailResult result = contentSafetyGuardrail.validate(message);
 
         // Then
-        assertThat(result.isSuccess()).isFalse();
-        assertThat(result.failures().getFirst().message()).contains("too long");
+        assertThat(result)
+                .hasFailures()
+                .hasResult(InputGuardrailResult.Result.FAILURE)
+                .hasSingleFailureWithMessage("Your message is too long. Please keep it under 1000 characters.");
     }
 
     @Test
@@ -85,7 +89,9 @@ class SimpleGuardrailTest {
         InputGuardrailResult result = promptInjectionGuardrail.validate(normalMessage);
 
         // Then
-        assertThat(result.isSuccess()).isTrue();
+        assertThat(result)
+                .isSuccessful()
+                .hasResult(InputGuardrailResult.Result.SUCCESS);
     }
 
     @Test
@@ -94,11 +100,13 @@ class SimpleGuardrailTest {
         // Given
         UserMessage message = UserMessage.from("Hello! What's the price of your product?");
 
-        // When & Then
-        assertThatNoException().isThrownBy(() -> {
-            InputGuardrailResult result = inputSanitizerGuardrail.validate(message);
-            assertThat(result).isNotNull();
-        });
+        // When
+        InputGuardrailResult result = inputSanitizerGuardrail.validate(message);
+
+        // Then
+        assertThat(result)
+                .isSuccessful()
+                .hasResult(InputGuardrailResult.Result.SUCCESS_WITH_RESULT);
     }
 
     @Test
@@ -106,14 +114,16 @@ class SimpleGuardrailTest {
     void professionalToneGuardrailShouldAllowProfessionalResponses() {
         // Given
         AiMessage professionalResponse = AiMessage.from(
-            "Thank you for your question. I'd be happy to help you with that."
+                "Thank you for your question. I'd be happy to help you with that."
         );
 
         // When
         OutputGuardrailResult result = professionalToneGuardrail.validate(professionalResponse);
 
         // Then
-        assertThat(result.isSuccess()).isTrue();
+        assertThat(result)
+                .isSuccessful()
+                .hasResult(OutputGuardrailResult.Result.SUCCESS);
     }
 
     @Test
@@ -126,8 +136,10 @@ class SimpleGuardrailTest {
         OutputGuardrailResult result = professionalToneGuardrail.validate(unprofessionalResponse);
 
         // Then
-        assertThat(result.isSuccess()).isFalse();
-        assertThat(result.failures().getFirst().message()).contains("professional");
+        assertThat(result)
+                .hasFailures()
+                .hasResult(OutputGuardrailResult.Result.FATAL)
+                .hasSingleFailureWithMessage("Unprofessional tone detected");
     }
 
     @Test
@@ -140,7 +152,9 @@ class SimpleGuardrailTest {
         InputGuardrailResult result = rateLimitingGuardrail.validate(message);
 
         // Then
-        assertThat(result.isSuccess()).isTrue();
+        assertThat(result)
+                .isSuccessful()
+                .hasResult(InputGuardrailResult.Result.SUCCESS);
     }
 
     @Test
@@ -153,7 +167,9 @@ class SimpleGuardrailTest {
         InputGuardrailResult result = contextAwareGuardrail.validate(message);
 
         // Then
-        assertThat(result.isSuccess()).isTrue();
+        assertThat(result)
+                .isSuccessful()
+                .hasResult(InputGuardrailResult.Result.SUCCESS);
     }
 
     @Test
@@ -163,13 +179,31 @@ class SimpleGuardrailTest {
         UserMessage shortMessage = UserMessage.from("Hi");
 
         // When & Then
-        assertThatNoException().isThrownBy(() -> {
-            contentSafetyGuardrail.validate(shortMessage);
-            promptInjectionGuardrail.validate(shortMessage);
-            inputSanitizerGuardrail.validate(shortMessage);
-            rateLimitingGuardrail.validate(shortMessage);
-            contextAwareGuardrail.validate(shortMessage);
-        });
+        var result1 = contentSafetyGuardrail.validate(shortMessage);
+        assertThat(result1)
+                .hasFailures()
+                .hasResult(InputGuardrailResult.Result.FAILURE)
+                .hasSingleFailureWithMessage("Your message is too short. Please provide more details.");
+
+        var result2 = promptInjectionGuardrail.validate(shortMessage);
+        assertThat(result2)
+            .isSuccessful()
+            .hasResult(InputGuardrailResult.Result.SUCCESS);
+
+        var result3 = inputSanitizerGuardrail.validate(shortMessage);
+        assertThat(result3)
+            .isSuccessful()
+            .hasResult(InputGuardrailResult.Result.SUCCESS_WITH_RESULT);
+
+        var result4 = rateLimitingGuardrail.validate(shortMessage);
+        assertThat(result4)
+            .isSuccessful()
+            .hasResult(InputGuardrailResult.Result.SUCCESS);
+
+        var result5 = contextAwareGuardrail.validate(shortMessage);
+        assertThat(result5)
+            .isSuccessful()
+            .hasResult(InputGuardrailResult.Result.SUCCESS);
     }
 
     @Test
@@ -178,29 +212,38 @@ class SimpleGuardrailTest {
         // Given
         AiMessage emptyMessage = AiMessage.from("");
 
-        // When & Then
-        assertThatNoException().isThrownBy(() -> {
-            OutputGuardrailResult result = professionalToneGuardrail.validate(emptyMessage);
-            assertThat(result).isNotNull();
-        });
+        // When
+        OutputGuardrailResult result = professionalToneGuardrail.validate(emptyMessage);
+
+        // Then
+        assertThat(result)
+                .hasFailures()
+                .hasResult(OutputGuardrailResult.Result.FATAL)
+                .hasSingleFailureWithMessage("Response lacks professional courtesy");
     }
 
     @Test
-    @DisplayName("Guardrails should handle unicode characters")
-    void guardrailsShouldHandleUnicodeCharacters() {
+    @DisplayName("Guardrails should detect mixed language characters")
+    void guardrailsShouldDetectMixedLanguageCharacters() {
         // Given
-        UserMessage unicodeMessage = UserMessage.from("Hello! 👋 Can you help with café reservations?");
+        UserMessage unicodeMessage = UserMessage.from("I would like to visit your café tomorrow afternoon to discuss the new menu items. Thank you!");
 
         // When & Then
-        assertThatNoException().isThrownBy(() -> {
-            InputGuardrailResult result1 = contentSafetyGuardrail.validate(unicodeMessage);
-            InputGuardrailResult result2 = promptInjectionGuardrail.validate(unicodeMessage);
-            InputGuardrailResult result3 = inputSanitizerGuardrail.validate(unicodeMessage);
+        var result1 = contentSafetyGuardrail.validate(unicodeMessage);
+        assertThat(result1)
+                .isSuccessful()
+                .hasResult(InputGuardrailResult.Result.SUCCESS);
 
-            assertThat(result1).isNotNull();
-            assertThat(result2).isNotNull();
-            assertThat(result3).isNotNull();
-        });
+        var result2 = promptInjectionGuardrail.validate(unicodeMessage);
+        assertThat(result2)
+                .hasFailures()
+                .hasResult(InputGuardrailResult.Result.FAILURE)
+                .hasSingleFailureWithMessage("Please submit your question in a single language.");
+
+        var result3 = inputSanitizerGuardrail.validate(unicodeMessage);
+        assertThat(result3)
+                .isSuccessful()
+                .hasResult(InputGuardrailResult.Result.SUCCESS_WITH_RESULT);
     }
 
     @Test
@@ -209,10 +252,12 @@ class SimpleGuardrailTest {
         // Given
         AiMessage unicodeResponse = AiMessage.from("Thank you! 😊 I'd be happy to help with café information.");
 
-        // When & Then
-        assertThatNoException().isThrownBy(() -> {
-            OutputGuardrailResult result = professionalToneGuardrail.validate(unicodeResponse);
-            assertThat(result).isNotNull();
-        });
+        // When
+        OutputGuardrailResult result = professionalToneGuardrail.validate(unicodeResponse);
+
+        // Then
+        assertThat(result)
+            .isSuccessful()
+            .hasResult(OutputGuardrailResult.Result.SUCCESS);
     }
 }

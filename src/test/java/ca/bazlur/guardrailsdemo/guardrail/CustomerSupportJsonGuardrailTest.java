@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
+import static dev.langchain4j.test.guardrail.GuardrailAssertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class CustomerSupportJsonGuardrailTest {
@@ -37,7 +38,9 @@ class CustomerSupportJsonGuardrailTest {
         OutputGuardrailResult result = guardrail.validate(AiMessage.from(validJson));
 
         // Then
-        assertThat(result.isSuccess()).isTrue();
+        assertThat(result)
+                .isSuccessful()
+                .hasResult(OutputGuardrailResult.Result.SUCCESS_WITH_RESULT);
     }
 
     @Test
@@ -60,7 +63,9 @@ class CustomerSupportJsonGuardrailTest {
         OutputGuardrailResult result = guardrail.validate(AiMessage.from(jsonInCodeBlock));
 
         // Then
-        assertThat(result.isSuccess()).isTrue();
+        assertThat(result)
+                .isSuccessful()
+                .hasResult(OutputGuardrailResult.Result.SUCCESS_WITH_RESULT);
     }
 
     @Test
@@ -93,9 +98,10 @@ class CustomerSupportJsonGuardrailTest {
         // When & Then
         for (String json : invalidJsons) {
             OutputGuardrailResult result = guardrail.validate(AiMessage.from(json));
-            assertThat(result.isSuccess())
+            assertThat(result)
                 .as("Should reject JSON missing required fields: " + json)
-                .isFalse();
+                .hasFailures()
+                .hasResult(OutputGuardrailResult.Result.FAILURE);
         }
     }
 
@@ -120,8 +126,11 @@ class CustomerSupportJsonGuardrailTest {
         OutputGuardrailResult result = guardrail.validate(AiMessage.from(json));
 
         // Then
-        assertThat(result.isSuccess()).isFalse();
-        assertThat(result.toString()).contains("Category must be one of:");
+        assertThat(result)
+                .hasFailures()
+                .hasResult(OutputGuardrailResult.Result.FAILURE);
+        org.assertj.core.api.Assertions.assertThat(result.toString())
+                .contains("Category must be one of:");
     }
 
     @Test
@@ -149,10 +158,11 @@ class CustomerSupportJsonGuardrailTest {
         // When & Then
         for (String json : invalidJsons) {
             OutputGuardrailResult result = guardrail.validate(AiMessage.from(json));
-            assertThat(result.isSuccess())
+            assertThat(result)
                 .as("Should reject invalid confidence value: " + json)
-                .isFalse();
-            assertThat(result.toString())
+                .hasFailures()
+                .hasResult(OutputGuardrailResult.Result.FAILURE);
+            org.assertj.core.api.Assertions.assertThat(result.toString())
                 .contains("Confidence must be between 0.0 and 1.0");
         }
     }
@@ -173,15 +183,17 @@ class CustomerSupportJsonGuardrailTest {
         for (String input : invalidInputs) {
             if (input != null) {
                 OutputGuardrailResult result = guardrail.validate(AiMessage.from(input));
-                assertThat(result.isSuccess())
+                assertThat(result)
                     .as("Should reject invalid input: " + input)
-                    .isFalse();
+                    .hasFailures()
+                    .hasResult(OutputGuardrailResult.Result.FATAL);
             } else {
                 // Test null input directly
                 OutputGuardrailResult result = guardrail.validate(AiMessage.from(""));
-                assertThat(result.isSuccess())
+                assertThat(result)
                     .as("Should reject null/empty input")
-                    .isFalse();
+                    .hasFailures()
+                    .hasResult(OutputGuardrailResult.Result.FATAL);
             }
         }
     }

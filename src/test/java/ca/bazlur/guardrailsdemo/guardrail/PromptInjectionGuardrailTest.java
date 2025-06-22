@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
+import static dev.langchain4j.test.guardrail.GuardrailAssertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class PromptInjectionGuardrailTest {
@@ -32,9 +33,10 @@ class PromptInjectionGuardrailTest {
         // When & Then
         for (String query : validQueries) {
             InputGuardrailResult result = guardrail.validate(UserMessage.from(query));
-            assertThat(result.isSuccess())
+            assertThat(result)
                 .as("Query should be valid: " + query)
-                .isTrue();
+                .isSuccessful()
+                .hasResult(InputGuardrailResult.Result.SUCCESS);
         }
     }
 
@@ -62,11 +64,11 @@ class PromptInjectionGuardrailTest {
         InputGuardrailResult result = guardrail.validate(UserMessage.from(maliciousInput));
 
         // Then
-        assertThat(result.isSuccess())
+        assertThat(result)
             .as("Should block malicious input: " + maliciousInput)
-            .isFalse();
-        assertThat(result.toString())
-            .contains("Potential prompt injection detected");
+            .hasFailures()
+            .hasResult(InputGuardrailResult.Result.FATAL)
+            .hasSingleFailureWithMessage("Potential prompt injection detected. Please ask a genuine customer support question.");
     }
 
     @Test
@@ -83,9 +85,10 @@ class PromptInjectionGuardrailTest {
         // When & Then
         for (String input : suspiciousInputs) {
             InputGuardrailResult result = guardrail.validate(UserMessage.from(input));
-            assertThat(result.isSuccess())
+            assertThat(result)
                 .as("Should detect suspicious input: " + input)
-                .isFalse();
+                .hasFailures()
+                .hasResult(InputGuardrailResult.Result.FAILURE);
         }
     }
 
@@ -98,9 +101,9 @@ class PromptInjectionGuardrailTest {
         InputGuardrailResult result = guardrail.validate(UserMessage.from(input));
 
         // Then
-        assertThat(result.isSuccess()).isFalse();
-        assertThat(result.isSuccess())
-            .isFalse();
+        assertThat(result)
+            .hasFailures()
+            .hasResult(InputGuardrailResult.Result.FAILURE);
     }
 
     @Test
@@ -112,8 +115,9 @@ class PromptInjectionGuardrailTest {
         InputGuardrailResult result = guardrail.validate(UserMessage.from(input));
 
         // Then
-        assertThat(result.isSuccess()).isFalse();
-        assertThat(result.toString())
-            .contains("single language");
+        assertThat(result)
+            .hasFailures()
+            .hasResult(InputGuardrailResult.Result.FAILURE)
+            .hasSingleFailureWithMessage("Please submit your question in a single language.");
     }
 }
